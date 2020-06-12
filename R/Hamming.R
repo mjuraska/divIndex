@@ -1,0 +1,66 @@
+#' Average Hamming Distance to Reference Sequence
+#'
+#' This function calculates the average Hamming distance to a reference sequence, given a vector of an
+#' individual's haplotype sequences and a vector of the observed counts for each haplotype.
+#' The index can be calculated using equal weighting for all haplotypes present, or using weights
+#' proportional to the frequency of each haplotype in the sample.
+#'
+#' @param seqs A character vector containing the distinct haplotype sequences from an individual subject.
+#' @param count A numeric vector of observed read counts for each haplotype.
+#' @param ref A character string containing the reference sequence.
+#' @param weighted A logical value indicating if the haplotypes should be weighted by their frequencies.
+#' If \code{FALSE}, all haplotypes have equal weighting.
+#' @param amino A logical value indicating whether haplotypes are amino acid sequences or nucleotide
+#' sequences. If \code{FALSE}, nucleotide sequences are assumed. Default is \code{TRUE}.
+#'
+#' @details Hamming distance is a diversity metric that estimates the average number of nucleotide or
+#' amino acid differences between sequences in a sample and a reference sequence. Hamming distance requires the
+#' two sequences compared to be of equal length, but this condition is not necessary for other distance
+#' metrics such as the Levenshtein distance, which accounts for insertions and deletions in addition to substitutions.
+#'
+#' @return Returns the average Hamming distance as a numeric value.
+#'
+#' @references
+#' Hamming, R. W. (1950). Error detecting and error correcting codes. \emph{Bell Labs Technical Journal},
+#' 29(2), 147-160.
+#'
+#' Levenshtein, V. I. (1966, February). Binary codes capable of correcting deletions, insertions, and
+#' reversals. In \emph{Soviet physics doklady} (Vol. 10, No. 8, pp. 707-710).
+#'
+#' @examples
+#' # amino acid example
+#' seqs <- c("ACDEFGHI","KLMNPQRS","TVWYACDE","SMWLWCAN")
+#' count <- c(10,200,366,14)
+#' ref <- c("AAAAAAAA")
+#' weighted <- FALSE
+#' amino <- TRUE
+#' Hamming(seqs, count, ref, weighted, amino)
+#'
+#' # nucleotide example
+#' seqs <- c("TACCTGGCG","TACTAAGGG", "TACGATGAC")
+#' count <- c(200,50,15)
+#' ref <- c("TACCGAGAT")
+#' weighted <- FALSE
+#' amino <- FALSE
+#' Hamming(seqs, count, ref, weighted, amino)
+#'
+#' @import Biostrings
+#'
+#' @seealso \code{\link[Biostrings]{AAStringSet}} in \strong{Biostrings}, \code{\link[Biostrings]{pairwiseAlignment}} in \strong{Biostrings},
+#' and \code{\link[Biostrings]{nmismatch}} in \strong{Biostrings}.
+#'
+#' @export
+Hamming <- function(seqs, count, ref, weighted, amino=TRUE){
+  if(amino==TRUE){
+    bseqs <- AAStringSet(seqs)
+  } else {
+    bseqs <- DNAStringSet(seqs)
+  }
+  psa <- pairwiseAlignment(pattern=bseqs,subject=ref)
+  nm <- nmismatch(psa)
+  if(weighted == TRUE){
+    sum(nm*count)/sum(count)
+  } else {
+    mean(nm)
+  }
+}
